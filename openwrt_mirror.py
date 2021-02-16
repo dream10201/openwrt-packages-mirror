@@ -4,21 +4,12 @@
 #  
 # Copyright (C) 2014 http://shuyz.com
 # modified by xiuxiu10201@2021.02
-# src/gz openwrt_core https://downloads.openwrt.org/snapshots/targets/ramips/mt7621/packages
-# src/gz openwrt_base https://downloads.openwrt.org/snapshots/packages/mipsel_24kc/base
-# src/gz openwrt_kmods https://downloads.openwrt.org/snapshots/targets/ramips/mt7621/kmods/5.4.98-1-6b0e6ccfc1a63ac8682d721effce8201
-# src/gz openwrt_freifunk https://downloads.openwrt.org/snapshots/packages/mipsel_24kc/freifunk
-# src/gz openwrt_luci https://downloads.openwrt.org/snapshots/packages/mipsel_24kc/luci
-# src/gz openwrt_packages https://downloads.openwrt.org/snapshots/packages/mipsel_24kc/packages
-# src/gz openwrt_routing https://downloads.openwrt.org/snapshots/packages/mipsel_24kc/routing
-# src/gz openwrt_telephony https://downloads.openwrt.org/snapshots/packages/mipsel_24kc/telephony
 
 packages_url = ["https://downloads.openwrt.org/snapshots/packages/mipsel_24kc/",
                 "https://downloads.openwrt.org/snapshots/targets/ramips/mt7621/packages/",
                 "https://downloads.openwrt.org/snapshots/targets/ramips/mt7621/kmods/5.4.98-1-6b0e6ccfc1a63ac8682d721effce8201/"
             ]
 save_path = "/var/www/openwrt"
-ignore_list = ["tesseract"]
 
 import requests
 import re
@@ -75,14 +66,8 @@ def save_packages(url, location):
                 #print('file exists, ignored.')
                 pass
             else:
-                flag = True
-                for ignore in ignore_list:
-                    if ignore in item:
-                        flag = False
-                        break
-                if flag:
-                    threadPool.submit(download, location + item,url + item,item)
-                    count +=1
+                threadPool.submit(download, location + item,url + item,item)
+                count +=1
 
 if __name__ == '__main__':
     for url in packages_url:
