@@ -15,40 +15,45 @@
 
 packages_url = ["https://downloads.openwrt.org/snapshots/packages/mipsel_24kc/",
                 "https://downloads.openwrt.org/snapshots/targets/ramips/mt7621/packages/",
-                "https://downloads.openwrt.org/snapshots/targets/ramips/mt7621/kmods/5.4.98-1-6b0e6ccfc1a63ac8682d721effce8201"
+                "https://downloads.openwrt.org/snapshots/targets/ramips/mt7621/kmods/5.4.98-1-6b0e6ccfc1a63ac8682d721effce8201/"
             ]
 save_path = "/var/www/openwrt"
+ignore_list = ["tesseract"]
 
 import requests
 import re
 import os
 from concurrent.futures import ThreadPoolExecutor
-threadPool = ThreadPoolExecutor(max_workers=64, thread_name_prefix="download_")
+requests.adapters.DEFAULT_RETRIES = 5
+request = requests.Session()
+request.keep_alive = False
+threadPool = ThreadPoolExecutor(max_workers=12, thread_name_prefix="download_")
+count = 0
 
-
-def download(location,url,item,rc=0):
+def download(location,url,name,rc=0):
     isOk="success"
     color = 32
     try:
-        rfile = requests.get(url).content
+        rfile = request.get(url).content
         with open(location, "wb") as code:
             code.write(rfile)
     except:
         if rc<5:
-            download(location,url,item,rc+1)
+            download(location,url,name,rc+1)
             return
         isOk="fail"
         color = 31
     # 150
-    point = "."*(100-len(item))
-    print(f"{item}{point}\033[1;{color};40m{isOk}\033[0m")
+    point = "."*(70-len(name))
+    print(f"{name}{point}\033[1;{color};40m{isOk}\033[0m")
 
 def save_packages(url, location):
+    global count
     location = os.path.abspath(location) + os.path.sep
     if not os.path.exists(location):
         os.makedirs(location)
-    print(f'fetching package list from {url}')
-    content = requests.get(url).text.replace("\n","")
+    #print(f'fetching package list from {url}')
+    content = request.get(url).text.replace("\n","")
     
     tablePattern = r"(?<=\<table\>).*?(?=\<\/table\>)"
     content = "".join(re.findall(tablePattern,content))
@@ -68,10 +73,19 @@ def save_packages(url, location):
                 #print('file exists, ignored.')
                 pass
             else:
-                threadPool.submit(download, location + item,url + item,item)
+                flag = True
+                for ignore in ignore_list:
+                    if ignore in item:
+                        flag = False
+                        break
+                if flag:
+                    threadPool.submit(download, location + item,url + item,item)
+                    count +=1
 
 if __name__ == '__main__':
     for url in packages_url:
+        if url[-1]!="/":
+            url += "/"
         save_packages(url, save_path+url.replace("https://downloads.openwrt.org",""))
     threadPool.shutdown(wait=True)
-    print("done.")
+    print(f"Total {count}\ndone.")
