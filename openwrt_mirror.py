@@ -25,6 +25,7 @@ def download(location,url,item,rc=0):
     except:
         if rc<5:
             download(location,url,item,rc+1)
+            return
         isOk="fail"
         color = 31
     # 150
@@ -45,14 +46,12 @@ def save_packages(url, location):
     pattern = r'<a href="(.*?)">'
     items = re.findall(pattern, content)
 
-    cnt = 0
     for item in items:
         if item == '../':
             continue
         elif item[-1] == '/':
             save_packages(url + item, location + item)
         else:
-            cnt += 1
             item = item.replace('%2b', '+')
             if os.path.isfile(location + item):
                 #print('file exists, ignored.')
