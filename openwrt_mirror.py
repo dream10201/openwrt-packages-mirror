@@ -52,6 +52,8 @@ def save_packages(url, location):
     location = os.path.abspath(location) + os.path.sep
     if not os.path.exists(location):
         os.makedirs(location)
+    if url[-1]!="/":
+        url += "/"
     #print(f'fetching package list from {url}')
     content = request.get(url).text.replace("\n","")
     
@@ -84,8 +86,6 @@ def save_packages(url, location):
 
 if __name__ == '__main__':
     for url in packages_url:
-        if url[-1]!="/":
-            url += "/"
         save_packages(url, save_path+url.replace("https://downloads.openwrt.org",""))
     threadPool.shutdown(wait=True)
     print(f"Total {count}\ndone.")
