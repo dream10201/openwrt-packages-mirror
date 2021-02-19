@@ -24,18 +24,18 @@ count = 0
 def download(location,url,name,rc=0):
     isOk="success"
     color = 32
+    point = "."*(100-len(name))
     try:
         rfile = request.get(url).content
         with open(location, "wb") as code:
             code.write(rfile)
     except:
         if rc<5:
+            print(f"{name}{point}\033[1;33;40mredownload\033[0m")
             download(location,url,name,rc+1)
             return
         isOk="fail"
         color = 31
-    # 150
-    point = "."*(70-len(name))
     print(f"{name}{point}\033[1;{color};40m{isOk}\033[0m")
 
 def save_packages(url, location):
