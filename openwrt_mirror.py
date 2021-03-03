@@ -1,41 +1,53 @@
 # -*- coding: utf-8 -*-
-#  
-# Openwrt Package Grabber  
-#  
-# Copyright (C) 2014 http://shuyz.com
-# modified by xiuxiu10201@2021.02
 
 packages_url = ["https://downloads.openwrt.org/snapshots/packages/mipsel_24kc/",
                 "https://downloads.openwrt.org/snapshots/targets/ramips/mt7621/packages/",
-                "https://downloads.openwrt.org/snapshots/targets/ramips/mt7621/kmods/5.4.98-1-6b0e6ccfc1a63ac8682d721effce8201/"
+                "https://downloads.openwrt.org/snapshots/targets/ramips/mt7621/kmods/5.4.101-1-d6599289bf075640da0d2b759f6c1d71"
             ]
 save_path = "/var/www/openwrt"
+
+proxies = {"http": "http://127.0.0.1:10808","https": "http://127.0.0.1:10808"}
 
 import requests
 import re
 import os
 from concurrent.futures import ThreadPoolExecutor
+import threading
+
+
+chunk_size=512*4
 requests.adapters.DEFAULT_RETRIES = 5
 request = requests.Session()
+#request.proxies = proxies
+request.headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36"}
 request.keep_alive = False
 threadPool = ThreadPoolExecutor(max_workers=12, thread_name_prefix="download_")
+lock=threading.Lock()
 count = 0
+fail_list = []
 
 def download(location,url,name,rc=0):
+    global fail_list
     isOk="success"
     color = 32
     point = "."*(100-len(name))
     try:
-        rfile = request.get(url).content
-        with open(location, "wb") as code:
-            code.write(rfile)
+        with request.get(url,stream=True) as rfile:
+            with open(location, "wb") as code:
+                for chunk in rfile.iter_content(chunk_size=chunk_size):
+                    if chunk:
+                        code.write(chunk)
     except:
+        if os.path.exists(location):
+            os.remove(location)
         if rc<5:
-            print(f"{name}{point}\033[1;33;40mredownload\033[0m")
             download(location,url,name,rc+1)
             return
         isOk="fail"
         color = 31
+        lock.acquire()
+        fail_list.append(name)
+        lock.release()
     print(f"{name}{point}\033[1;{color};40m{isOk}\033[0m")
 
 def save_packages(url, location):
@@ -45,13 +57,10 @@ def save_packages(url, location):
         os.makedirs(location)
     if url[-1]!="/":
         url += "/"
-    #print(f'fetching package list from {url}')
     content = request.get(url).text.replace("\n","")
     
     tablePattern = r"(?<=\<table\>).*?(?=\<\/table\>)"
     content = "".join(re.findall(tablePattern,content))
-
-    #print('packages list ok, analysing...')
     pattern = r'<a href="(.*?)">'
     items = re.findall(pattern, content)
     items.reverse()
@@ -62,10 +71,7 @@ def save_packages(url, location):
             save_packages(url + item, location + item)
         else:
             item = item.replace('%2b', '+')
-            if os.path.isfile(location + item):
-                #print('file exists, ignored.')
-                pass
-            else:
+            if not os.path.isfile(location + item):
                 threadPool.submit(download, location + item,url + item,item)
                 count +=1
 
@@ -73,4 +79,5 @@ if __name__ == '__main__':
     for url in packages_url:
         save_packages(url, save_path+url.replace("https://downloads.openwrt.org",""))
     threadPool.shutdown(wait=True)
-    print(f"Total {count}\ndone.")
+    failStr = "\n".join(fail_list)
+    print(f"Total {count}\ndone.\n\033[1;31;40m{failStr}\033[0m")
