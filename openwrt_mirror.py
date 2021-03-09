@@ -11,7 +11,7 @@ proxies = {"http": "http://127.0.0.1:10808","https": "http://127.0.0.1:10808"}
 import requests
 import re
 import os
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
 import threading
 
 
@@ -21,7 +21,8 @@ request = requests.Session()
 #request.proxies = proxies
 request.headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36"}
 request.keep_alive = False
-threadPool = ThreadPoolExecutor(max_workers=12, thread_name_prefix="download_")
+#threadPool = ThreadPoolExecutor(max_workers=12, thread_name_prefix="download_")
+processPool = ProcessPoolExecutor()
 lock=threading.Lock()
 count = 0
 fail_list = []
@@ -72,12 +73,14 @@ def save_packages(url, location):
         else:
             item = item.replace('%2b', '+')
             if not os.path.isfile(location + item):
-                threadPool.submit(download, location + item,url + item,item)
+                #threadPool.submit(download, location + item,url + item,item)
+                processPool.submit(download, location + item,url + item,item)
                 count +=1
 
 if __name__ == '__main__':
     for url in packages_url:
         save_packages(url, save_path+url.replace("https://downloads.openwrt.org",""))
-    threadPool.shutdown(wait=True)
+    #threadPool.shutdown(wait=True)
+    processPool.shutdown(wait=True)
     failStr = "\n".join(fail_list)
     print(f"Total {count}\ndone.\n\033[1;31;40m{failStr}\033[0m")
