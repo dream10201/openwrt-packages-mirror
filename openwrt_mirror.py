@@ -4,8 +4,8 @@ packages_url = ["https://downloads.openwrt.org/snapshots/packages/mipsel_24kc/",
                 "https://downloads.openwrt.org/snapshots/targets/ramips/mt7621/packages/",
                 "https://downloads.openwrt.org/snapshots/targets/ramips/mt7621/kmods/5.4.101-1-d6599289bf075640da0d2b759f6c1d71"
             ]
-save_path = "/var/www/openwrt"
-
+#save_path = "/var/www/openwrt"
+save_path = "/tmp"
 proxies = {"http": "http://127.0.0.1:10808","https": "http://127.0.0.1:10808"}
 
 import requests
@@ -33,12 +33,12 @@ class SSLAdapter(HTTPAdapter):
 chunk_size=512*4
 requests.adapters.DEFAULT_RETRIES = 5
 request = requests.Session()
-#request.mount('https://', SSLAdapter(ssl.PROTOCOL_SSLv3))
+#request.mount('https://', SSLAdapter(ssl.PROTOCOL_TLSv1))
 #request.proxies = proxies
 request.headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36"}
 request.keep_alive = False
-#threadPool = ThreadPoolExecutor(max_workers=12, thread_name_prefix="download_")
-processPool = ProcessPoolExecutor()
+threadPool = ThreadPoolExecutor(max_workers=12, thread_name_prefix="download_")
+#processPool = ProcessPoolExecutor()
 lock=threading.Lock()
 count = 0
 fail_list = []
@@ -89,14 +89,14 @@ def save_packages(url, location):
         else:
             item = item.replace('%2b', '+')
             if not os.path.isfile(location + item):
-                #threadPool.submit(download, location + item,url + item,item)
-                processPool.submit(download, location + item,url + item,item)
+                threadPool.submit(download, location + item,url + item,item)
+                #processPool.submit(download, location + item,url + item,item)
                 count +=1
 
 if __name__ == '__main__':
     for url in packages_url:
         save_packages(url, save_path+url.replace("https://downloads.openwrt.org",""))
-    #threadPool.shutdown(wait=True)
-    processPool.shutdown(wait=True)
+    threadPool.shutdown(wait=True)
+    #processPool.shutdown(wait=True)
     failStr = "\n".join(fail_list)
     print(f"Total {count}\ndone.\n\033[1;31;40m{failStr}\033[0m")
