@@ -1,4 +1,4 @@
-name: release
+name: backup
 
 on:
   workflow_dispatch:
@@ -11,7 +11,6 @@ on:
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
-    if: startsWith(github.ref,'refs/tags/v')
     if: github.event.repository.owner.id == github.event.sender.id
 
     steps:
@@ -22,3 +21,13 @@ jobs:
           fetch-depth: 0
         env:
           FILECLOUD_VERSION: ${{github.ref}}
+      - run: |
+          sudo apt install python3 python3-pip -y
+          sudo pip install requests
+          sudo python3 openwrt_mirror.py >>/var/www/openwrt/download.log
+      - name : Upload artifact
+        uses: actions/upload-artifact@master
+        if: always()
+        with:
+          name: OpenWrt-xiaomi-AC2100
+          path: /var/www/openwrt
