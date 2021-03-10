@@ -23,15 +23,13 @@ jobs:
           FILECLOUD_VERSION: ${{github.ref}}
       - name: Install Packages
         run: |
-          sudo apt update
-          sudo apt upgrade -y
           sudo apt install python3 python3-pip openssl -y
           sudo pip install requests
           sudo mkdir /var/www/openwrt
           sudo chmod 777 -R /var/www/openwrt/
       - name: Run Script
         run: |
-          python3 openwrt_mirror.py >>/var/www/openwrt/download.log
+          python3 openwrt_mirror.py
       - name : Upload artifact
         uses: actions/upload-artifact@master
         if: always()
