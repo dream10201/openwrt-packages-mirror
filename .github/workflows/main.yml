@@ -23,6 +23,8 @@ jobs:
           FILECLOUD_VERSION: ${{github.ref}}
       - name: Install Packages
         run: |
+          sudo apt update
+          sudo apt upgrade -y
           sudo apt install python3 python3-pip openssl -y
           sudo pip install requests
           sudo mkdir /var/www/openwrt
