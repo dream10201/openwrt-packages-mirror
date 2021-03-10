@@ -13,11 +13,27 @@ import re
 import os
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
 import threading
+import ssl
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.poolmanager import PoolManager
+class SSLAdapter(HTTPAdapter):
+    '''An HTTPS Transport Adapter that uses an arbitrary SSL version.'''
+    def __init__(self, ssl_version=None, **kwargs):
+        self.ssl_version = ssl_version
+
+        super(SSLAdapter, self).__init__(**kwargs)
+
+    def init_poolmanager(self, connections, maxsize, block=False):
+        self.poolmanager = PoolManager(num_pools=connections,
+                                       maxsize=maxsize,
+                                       block=block,
+                                       ssl_version=self.ssl_version)
 
 
 chunk_size=512*4
 requests.adapters.DEFAULT_RETRIES = 5
 request = requests.Session()
+request.mount('https://', SSLAdapter(ssl.PROTOCOL_TLSv1))
 #request.proxies = proxies
 request.headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36"}
 request.keep_alive = False
