@@ -30,9 +30,13 @@ jobs:
       - name: Run Script
         run: |
           python3 openwrt_mirror.py
+      - name: Tar Files
+        run: |
+          tar -cvf /tmp/packages.tar /var/www/openwrt/
+          xz -9 -T 12 -z /tmp/packages.tar
       - name : Upload artifact
         uses: actions/upload-artifact@master
         if: always()
         with:
           name: OpenWrt-xiaomi-AC2100
-          path: /var/www/openwrt
+          path: /tmp/packages.tar.xz
