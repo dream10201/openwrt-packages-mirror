@@ -33,7 +33,7 @@ class SSLAdapter(HTTPAdapter):
 chunk_size=512*4
 requests.adapters.DEFAULT_RETRIES = 5
 request = requests.Session()
-request.mount('https://', SSLAdapter(ssl.PROTOCOL_TLSv1_1))
+request.mount('https://', SSLAdapter(ssl.PROTOCOL_TLSv1_2))
 #request.proxies = proxies
 request.headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36"}
 request.keep_alive = False
