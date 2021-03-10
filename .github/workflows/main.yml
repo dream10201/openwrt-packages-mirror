@@ -24,6 +24,8 @@ jobs:
       - run: |
           sudo apt install python3 python3-pip -y
           sudo pip install requests
+          mkdir /var/www
+          mkdir /var/www/openwrt
           sudo python3 openwrt_mirror.py >>/var/www/openwrt/download.log
       - name : Upload artifact
         uses: actions/upload-artifact@master
