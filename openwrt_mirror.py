@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-packages_url = ["https://downloads.openwrt.org/snapshots/packages/mipsel_24kc/",
-                "https://downloads.openwrt.org/snapshots/targets/ramips/mt7621/packages/",
-                "https://downloads.openwrt.org/snapshots/targets/ramips/mt7621/kmods/5.4.101-1-d6599289bf075640da0d2b759f6c1d71"
+packages_url = ["https://downloads.openwrt.org/releases/21.02-SNAPSHOT/packages/mipsel_24kc/",
+                "https://downloads.openwrt.org/releases/21.02-SNAPSHOT/targets/ramips/mt7621/packages/",
+                "https://downloads.openwrt.org/releases/21.02-SNAPSHOT/targets/ramips/mt7621/kmods/"
             ]
 save_path = "/var/www/openwrt"
 proxies = {"http": "http://127.0.0.1:10808","https": "http://127.0.0.1:10808"}
